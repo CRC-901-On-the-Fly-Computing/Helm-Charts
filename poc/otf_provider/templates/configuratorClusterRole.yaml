@@ -1,0 +1,11 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  # "namespace" omitted since ClusterRoles are not namespaced
+  name: {{ .Release.Namespace }}-pod-creator
+rules:
+- apiGroups: ["", "extensions", "apps"]
+  # Create deplyoments and expose them via services
+  resources: ["pods", "pods/log"]
+  # Listing s.t. the NodePort-field can be read after creating the service
+  verbs: ["get", "create", "list", "watch", "delete"]

@@ -1,0 +1,103 @@
+# Default values for the otf provider
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+credentials:
+  name: user-nexus
+  credentialSecretName: user-nexus-credentials
+  sfbNexus:
+     name: sfb-nexus
+     credentialSecretName: sfb-nexus-credentials
+     registry: "nexus.cs.upb.de/sfb901-testbed/"
+     username: "gradleuser"
+
+config:
+  marketProviderNamespace: market-provider
+  executionNamespace: execution
+  elasticSearchNamespace: elastic
+  # Specifies the name of the otf-provider
+ # If not set, the .Release.Namespace value is being used as the name
+ # name: PROSECO OTFProvider
+  icon: "https://nexus.cs.upb.de/repository/sfb901-testbed-files/proseco-logo.png"
+  nodeAntiAffinity:
+  - sfb-jenkins
+
+
+# Request-DB, these values are the values for the "stable/mongodb" helm chart
+requestDatabase:
+  nameOverride: "requestdb"
+  auth:
+    usernames: ["otf-provider"]
+    databases: ["request-data"]
+  image:
+    tag: 4.2
+  mongodbUsername: otf-provider
+  mongodbDatabase: request-data
+  volumePermissions:
+    enabled: true
+  # Exposed as a NodePort for external debugging
+  service:
+    type: NodePort
+    nodePort: 30800
+  persistence:
+    size: 2Gi
+
+requestDatabaseSecret:
+  name: "requestsecret"
+
+otfCompositionAnalysis:
+  name: "composition-analysis"
+  deployment:
+    container:
+        imagePullPolicy: Always
+        # Docker values
+        image: composition_analysis
+        tag: latest
+    # Can be increased to balance load, as the review board is stateless
+    replicaCount: 2
+    # CI requirement in order to have only the latest version running
+    revisionHistoryLimit: 0
+    port: 8080
+    resources:
+      limit:
+        memory: 10Gi
+  service:
+    type: NodePort
+    nodePort: 30186
+
+otfConfigurator:
+  name: "proseco-configurator"
+  podNamespaceSuffix: -pods
+  service:
+    type: NodePort
+    nodePort: 30187
+  deployment:
+    ports:
+    - name: http
+      nodePort: 32020
+      port: 8080
+    replicaCount: 1
+    revisionHistoryLimit: 0
+    container:
+      image: proseco_configurator
+      tag: latest
+      imagePullPolicy: Always
+      env:
+        mongoHostEnvName: "REQUEST_DB_HOST"
+        mongoPortEnvName: "REQUEST_DB_PORT"
+        mongoUserEnvName: "REQUEST_DB_USER"
+        mongoPasswordEnvName: "REQUEST_DB_PASSWORD"
+
+otfPolicyProvider:
+  name: "policy-provider"
+  service:
+    type: NodePort
+    nodePort: 31645
+  deployment:
+    port: 8080
+    replicaCount: 1
+    revisionHistoryLimit: 0
+    container:
+      imagePullPolicy: Always      
+      image: policy_provider
+      tag: latest
+

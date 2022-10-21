@@ -1,0 +1,4 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ printf "%s%s" .Release.Namespace .Values.otfConfigurator.podNamespaceSuffix }}

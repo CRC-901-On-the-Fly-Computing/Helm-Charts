@@ -1,0 +1,36 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ .Values.swaggerui.name }}
+  labels:
+    app: {{ .Values.swaggerui.name }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.swaggerui.replicaCount }}
+  revisionHistoryLimit: {{ .Values.swaggerui.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      app: {{ .Values.swaggerui.name }}
+      helm.sh/chart: {{ include "postgres.chart" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/managed-by: {{ .Release.Service }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.swaggerui.name }}
+        helm.sh/chart: {{ include "postgres.chart" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+    spec:
+      containers:
+      - name: {{ .Values.swaggerui.name }}
+        image: "{{ .Values.swaggerui.image }}:{{ .Values.swaggerui.imageTag }}"
+        imagePullPolicy: {{ .Values.swaggerui.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.swaggerui.containerPort }}
+        envFrom:
+        - configMapRef:
+            name: {{ .Values.swaggerui.name }}
+

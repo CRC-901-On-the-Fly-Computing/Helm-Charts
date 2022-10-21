@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.otfCompositionAnalysis.name }}
+  labels:
+    helm.sh/chart: {{ include "otf-provider-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    run: {{ .Values.otfCompositionAnalysis.name }}
+spec:
+  type: {{ .Values.otfCompositionAnalysis.service.type }}
+  ports:
+    - port: {{ .Values.otfCompositionAnalysis.deployment.port }}
+  {{- if .Values.otfCompositionAnalysis.service.nodePort }}
+      nodePort: {{ .Values.otfCompositionAnalysis.service.nodePort }}
+  {{- end }}
+  selector:
+    run: {{ .Values.otfCompositionAnalysis.name }}

@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.otfConfigurator.name }}
+  labels:
+    helm.sh/chart: {{ include "otf-provider-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      run: {{ .Values.otfConfigurator.name }}
+  replicas: {{ .Values.otfConfigurator.deployment.replicaCount }}
+  revisionHistoryLimit: {{ .Values.otfConfigurator.deployment.revisionHistoryLimit }}
+  template:
+    metadata:
+      labels:
+        run: {{ .Values.otfConfigurator.name }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.credentials.name }}
+      serviceAccountName: {{ .Values.otfConfigurator.name }}-service-account
+      imagePullPolicy: {{ .Values.otfConfigurator.deployment.imagePullPolicy }}
+      containers:
+      - image: "{{ .Values.credentials.userNexusUrl }}/{{ .Values.credentials.dockerRepositoryName }}/{{ .Values.otfConfigurator.deployment.container.image }}:{{ .Values.otfConfigurator.deployment.container.tag }}"
+        imagePullPolicy: {{ .Values.otfConfigurator.deployment.container.imagePullPolicy }}
+        name: {{ .Values.otfConfigurator.name }}
+        env:
+        - name: {{ .Values.otfConfigurator.deployment.container.env.mongoHostEnvName }}
+          value: {{ printf "%s_%s_%s" .Release.Namespace .Values.requestDatabase.nameOverride "SERVICE_HOST" | upper | replace "-" "_" | trunc 63 | trimSuffix "-"}}
+        - name: {{ .Values.otfConfigurator.deployment.container.env.mongoPortEnvName }}
+          value: "27017"
+        - name: {{ .Values.otfConfigurator.deployment.container.env.mongoUserEnvName }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.requestDatabaseSecret.name }}
+              key: username
+        - name: {{ .Values.otfConfigurator.deployment.container.env.mongoPasswordEnvName }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.requestDatabaseSecret.name }}
+              key: password
+        - name: POD_NAMESPACE
+          value: {{ printf "%s%s" .Release.Namespace .Values.otfConfigurator.podNamespaceSuffix }}
+        - name: DOCKER_SECRET_NAME
+          value: {{ .Values.credentials.sfbNexus.name }}
+        - name: REQUEST_SECRET_NAME
+          value: {{ .Values.requestDatabaseSecret.name }}
+        - name: MARKET_PROVIDER_NAMESPACE
+          value: {{ .Values.config.marketProviderNamespace }}
+        - name: EXECUTION_NAMESPACE
+          value: {{ .Values.config.executionNamespace }}
+        - name: ELASTIC_NAMESPACE
+          value: {{ .Values.config.elasticSearchNamespace }}
+        - name: OTFP_NAMESPACE
+          value: {{ .Release.Namespace }}
+        - name: OTFP_NAME
+          value: {{ .Values.config.name | default .Release.Namespace }}
+        - name: OTFP_ICON
+          value: {{ .Values.config.icon }}
+        - name: DOCKER_CREDENTIAL_SECRET_NAME
+          value: {{ .Values.credentials.credentialSecretName }}
+        ports: {{- range .Values.otfConfigurator.deployment.ports }}
+        - containerPort: {{ .port }}
+          protocol: TCP
+      {{- end }}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: NotIn
+                values:
+                {{- range .Values.config.nodeAntiAffinity }}
+                - {{ . | quote }}
+                {{- end }}
+

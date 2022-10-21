@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.requestDatabaseSecret.name }}
+type: Opaque
+data:
+  username: {{ .Values.requestDatabase.mongodbUsername | b64enc }}
+  password: {{ .Values.requestDatabase.mongodbPassword | b64enc }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.requestDatabaseSecret.name }}
+  namespace: {{ printf "%s%s" .Release.Namespace .Values.otfConfigurator.podNamespaceSuffix }}
+type: Opaque
+data:
+  username: {{ .Values.requestDatabase.mongodbUsername | b64enc }}
+  password: {{ .Values.requestDatabase.mongodbPassword | b64enc }}

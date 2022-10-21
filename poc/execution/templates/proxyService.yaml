@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.proxy.name }}
+  labels:
+    helm.sh/chart: {{ include "execution-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    run: {{ .Values.proxy.name }}
+spec:
+  type: {{ .Values.proxy.service.type }}
+  ports:
+  {{- range .Values.proxy.deployment.ports }}
+    - name: {{ .name }}
+      port: {{ .port }}
+      protocol: TCP
+      targetPort: {{ .targetPort }}
+      nodePort: {{ .nodePort }}
+  {{- end }}
+  selector:
+    run: {{ .Values.proxy.name}}

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.sfbb1api.name }}
+  labels:
+    helm.sh/chart: {{ include "service-requester-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    run: {{ .Values.sfbb1api.name }}
+spec:
+  type: {{ .Values.sfbb1api.service.type }}
+  ports:
+  - port: {{ .Values.sfbb1api.deployment.port }}
+  {{- if .Values.sfbb1api.service.nodePort }}
+    nodePort: {{ .Values.sfbb1api.service.nodePort }}
+  {{- end }}
+  selector:
+    run: {{ .Values.sfbb1api.name }}

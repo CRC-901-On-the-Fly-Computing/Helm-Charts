@@ -1,0 +1,17 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Values.postgres.name }}
+  labels:
+    app: {{ .Values.postgres.name }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  POSTGRES_DB: {{ .Values.postgres.database.name }}
+  POSTGRES_USER: {{ .Values.postgres.database.adminName }}
+  POSTGRES_PASSWORD: {{ .Values.postgres.database.adminPassword }}
+#  POSTGRES_INITDB_ARGS:
+#  POSTGRES_INITDB_WALDIR:
+#  PGDATA: /var/lib/postgresql/data
+

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.systemManager.name }}
+  labels:
+    helm.sh/chart: {{ include "market-provider-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      run: {{ .Values.systemManager.name }}
+  replicas: {{ .Values.systemManager.deployment.replicaCount }}
+  revisionHistoryLimit: {{ .Values.systemManager.deployment.revisionHistoryLimit }}
+  template:
+    metadata:
+      labels:
+        run: {{ .Values.systemManager.name }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.credentials.name }}
+      containers:
+      - name: {{ .Values.systemManager.name }}
+        image: "{{ .Values.credentials.userNexusUrl }}/{{ .Values.credentials.dockerRepositoryName}}/{{ .Values.systemManager.deployment.container.image }}:{{ .Values.systemManager.deployment.container.tag }}"
+        imagePullPolicy: {{ .Values.systemManager.deployment.container.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.systemManager.deployment.port }}

@@ -1,0 +1,41 @@
+# Default values for the service requester & its spawner.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+credentials:
+  name: user-nexus
+  sfbNexus:      
+     name: sfb-nexus
+     registry: "nexus.cs.upb.de/sfb901-testbed/"
+     username: "gradleuser"
+
+config:
+  marketProviderNamespace: market-provider
+
+serviceRequester:
+  name: service-requester-new
+  deployment:
+    replicaCount: 1
+    revisionHistoryLimit: 0
+    container:
+      imagePullPolicy: Always
+      image: service_requester_new
+      tag: latest
+    port: 8080
+  service:
+    type: NodePort
+    nodePort: 31052
+
+
+# Chatbot api values
+sfbb1api:
+  name: sfb-b1-api
+  service:
+    type: NodePort
+    nodePort: 31054
+  deployment:
+    port: 80
+    replicaCount: 1
+    revisionHistoryLimit: 0
+    container:
+      image: nexus.cs.upb.de/sfb901-testbed/sfb-b1-api
+      tag: v1

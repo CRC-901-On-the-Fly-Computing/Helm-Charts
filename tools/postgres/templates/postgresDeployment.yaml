@@ -1,0 +1,54 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ .Values.postgres.name }}
+  labels:
+    app: {{ .Values.postgres.name }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.postgres.replicaCount }}
+  revisionHistoryLimit: {{ .Values.postgres.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      app: {{ .Values.postgres.name }}
+      helm.sh/chart: {{ include "postgres.chart" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/managed-by: {{ .Release.Service }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.postgres.name }}
+        helm.sh/chart: {{ include "postgres.chart" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+    spec:
+      containers:
+      - name: {{ .Values.postgres.name }}
+        image: "{{ .Values.postgres.image }}:{{ .Values.postgres.imageTag }}"
+        imagePullPolicy: {{ .Values.postgres.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.postgres.containerPort }}
+        envFrom:
+        - configMapRef:
+            name: {{ .Values.postgres.name }}
+        # lifecycle:
+        #   postStart:
+        #     exec:
+        #       command: ["/bin/bash","-c","sleep 20 && psql -U postgres -c \'\\c {{ .Values.postgres.database.name }}\' -c \'CREATE TABLE code_provider_registry (code_provider_id character varying(20) NOT NULL PRIMARY KEY, repository_url character varying(2083) , subfolder character varying(2020), tag character varying(20));\' -c \'CREATE TABLE service_registry (service_id character varying(200) NOT NULL PRIMARY KEY, code_provider_id character varying(20), service_specification text, service_policy text, hardware character varying(20), price numeric, service_specification_proseco text, service_description text); \'"]
+        volumeMounts:
+        - name: init-db
+          mountPath: /docker-entrypoint-initdb.d/initialization.sql
+          subPath: initialization.sql
+          readOnly: true
+        - name: storage
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: init-db
+        configMap:
+          name: {{ .Values.postgres.name }}-init
+      - name: storage
+        persistentVolumeClaim:
+          claimName: {{ .Values.postgres.name }}
+

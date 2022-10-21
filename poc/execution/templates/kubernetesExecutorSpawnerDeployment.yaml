@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.kubernetesExecutorSpawner.name }}
+  labels:
+    helm.sh/chart: {{ include "execution-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      run: {{ .Values.kubernetesExecutorSpawner.name }}
+  replicas: {{ .Values.kubernetesExecutorSpawner.deployment.replicaCount }}
+  revisionHistoryLimit: {{ .Values.kubernetesExecutorSpawner.deployment.revisionHistoryLimit }}
+  template:
+    metadata:
+      labels:
+        run: {{ .Values.kubernetesExecutorSpawner.name }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.credentials.name }}
+      serviceAccountName: {{ .Values.kubernetesExecutorSpawner.name }}-service-account
+      containers:
+      - name: {{ .Values.kubernetesExecutorSpawner.name }}
+        image: "{{ .Values.credentials.userNexusUrl }}/{{ .Values.credentials.dockerRepositoryName }}/{{ .Values.kubernetesExecutorSpawner.deployment.container.image }}:{{ .Values.kubernetesExecutorSpawner.deployment.container.tag }}"
+        imagePullPolicy: {{ .Values.kubernetesExecutorSpawner.deployment.container.imagePullPolicy }}
+        env:
+        - name: GATEWAY_NAMESPACE
+          value: {{ .Release.Namespace }}
+        - name: MARKET_PROVIDER_NAMESPACE
+          value: {{ .Values.config.marketProviderNamespace }}
+        - name: EXECUTOR_NAMESPACE
+          value: {{ .Values.kubernetesExecutorSpawner.executorNamespace }}
+        {{ if not .Values.masterNode.autoConfig }}
+        - name: MASTER_NODE_HOSTNAME
+          value: {{ .Values.masterNode.hostName }}
+        {{ end }}
+        - name: PRIVATE_DOCKER_SECRET_KEY
+          value: {{ .Values.credentials.name }}
+        - name: NEXUS_USER
+          valueFrom:
+            secretKeyRef:
+              name: docker-secret
+              key: username
+        - name: NEXUS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: docker-secret
+              key: password
+        - name: NEXUS_HOST
+          valueFrom:
+            secretKeyRef:
+              name: docker-secret
+              key: host
+        ports:
+        - containerPort: {{ .Values.kubernetesExecutorSpawner.deployment.port}}
+        volumeMounts:
+        - name: docker
+          mountPath: /var/run/docker.sock
+      volumes:
+        - name: docker
+          hostPath:
+            path: /var/run/docker.sock

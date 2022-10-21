@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.sfbb1api.name }}
+  labels:
+    helm.sh/chart: {{ include "service-requester-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      run: {{ .Values.sfbb1api.name }}
+  replicas: {{ .Values.sfbb1api.deployment.replicaCount }}
+  revisionHistoryLimit: {{ .Values.sfbb1api.deployment.revisionHistoryLimit }}
+  template:
+    metadata:
+      labels:
+        run: {{ .Values.sfbb1api.name }}
+    spec:
+      imagePullSecrets:
+      - name: {{ .Values.credentials.sfbNexus.name }}
+      containers:
+      - name: {{ .Values.sfbb1api.name }}
+        image: "{{ .Values.sfbb1api.deployment.container.image }}:{{ .Values.sfbb1api.deployment.container.tag }}"
+        ports:
+        - containerPort: {{ .Values.sfbb1api.deployment.port }}

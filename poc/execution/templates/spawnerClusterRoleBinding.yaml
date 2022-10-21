@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+# This allows the spawner pod to create deployments & services in the execution-executor namespace
+kind: RoleBinding
+metadata:
+  name: {{ .Values.kubernetesExecutorSpawner.name }}-depl-role-binding
+  namespace: {{ .Values.kubernetesExecutorSpawner.executorNamespace }}
+subjects:
+- kind: ServiceAccount
+  name: {{ .Values.kubernetesExecutorSpawner.name }}-service-account
+  apiGroup: ""
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole #this must be Role or ClusterRole
+  name: executor-service-creator
+  apiGroup: rbac.authorization.k8s.io

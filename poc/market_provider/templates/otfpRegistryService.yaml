@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.otfpRegistry.name }}
+  labels:
+    helm.sh/chart: {{ include "market-provider-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    run: {{ .Values.otfpRegistry.name }}
+spec:
+  type: {{ .Values.otfpRegistry.service.type }}
+  ports:
+    - port: {{ .Values.otfpRegistry.deployment.port }}
+  {{- if .Values.otfpRegistry.service.nodePort }}
+      nodePort: {{ .Values.otfpRegistry.service.nodePort }}
+  {{- end }}
+  selector:
+    run: {{ .Values.otfpRegistry.name }}

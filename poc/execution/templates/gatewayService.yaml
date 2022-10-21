@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.gateway.name }}
+  labels:
+    helm.sh/chart: {{ include "execution-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    run: {{ .Values.gateway.name }}
+spec:
+  type: {{ .Values.gateway.service.type }}
+  ports:
+  {{- range .Values.gateway.deployment.ports }}
+    - name: {{ .name }}
+      port: {{ .port }}
+      protocol: TCP
+      targetPort: {{ .targetPort }}
+      nodePort: {{ .nodePort }}
+  {{- end }}
+  selector:
+    run: {{ .Values.gateway.name}}

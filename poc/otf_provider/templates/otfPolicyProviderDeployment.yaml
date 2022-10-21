@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.otfPolicyProvider.name }}
+  labels:
+    helm.sh/chart: {{ include "otf-provider-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      run: {{ .Values.otfPolicyProvider.name }}
+  replicas: {{ .Values.otfPolicyProvider.deployment.replicaCount }}
+  revisionHistoryLimit: {{ .Values.otfPolicyProvider.deployment.revisionHistoryLimit }}
+  template:
+    metadata:
+      labels:
+        run: {{ .Values.otfPolicyProvider.name }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.credentials.name }}
+      containers:
+      - name: {{ .Values.otfPolicyProvider.name }}
+        image: "{{ .Values.credentials.userNexusUrl }}/{{ .Values.credentials.dockerRepositoryName }}/{{ .Values.otfPolicyProvider.deployment.container.image }}:{{ .Values.otfPolicyProvider.deployment.container.tag }}"
+        imagePullPolicy: {{ .Values.otfPolicyProvider.deployment.container.imagePullPolicy }}        
+        ports:
+        - containerPort: {{ .Values.otfPolicyProvider.deployment.port }}

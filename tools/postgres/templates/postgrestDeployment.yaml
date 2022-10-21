@@ -1,0 +1,36 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ .Values.postgrest.name }}
+  labels:
+    app: {{ .Values.postgrest.name }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.postgrest.replicaCount }}
+  revisionHistoryLimit: {{ .Values.postgrest.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      app: {{ .Values.postgrest.name }}
+      helm.sh/chart: {{ include "postgres.chart" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/managed-by: {{ .Release.Service }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.postgrest.name }}
+        helm.sh/chart: {{ include "postgres.chart" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+    spec:
+      containers:
+      - name: {{ .Values.postgrest.name }}
+        image: "{{ .Values.postgrest.image }}:{{ .Values.postgrest.imageTag }}"
+        imagePullPolicy: {{ .Values.postgrest.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.postgrest.containerPort }}
+        envFrom:
+        - configMapRef:
+            name: {{ .Values.postgrest.name }}
+

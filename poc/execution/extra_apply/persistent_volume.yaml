@@ -1,0 +1,33 @@
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: nfs-reclaim-delete-0
+  labels:
+    type: local
+spec:
+  storageClassName: nfs-reclaim-delete
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/nfs-reclaim-delete/0"
+    type: DirectoryOrCreate
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: nfs-reclaim-delete-1
+  labels:
+    type: local
+spec:
+  storageClassName: nfs-reclaim-delete
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/nfs-reclaim-delete/1"
+    type: DirectoryOrCreate
+

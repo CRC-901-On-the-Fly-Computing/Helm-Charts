@@ -1,0 +1,265 @@
+# defining yaml anchors
+settings:
+  # the version of the elastic stack
+  # change esMajorVersion according to this value
+  imageVersion: &imageVersion "7.17.3"
+
+  # the major version of elasticsearch, must be set according to imageTag
+  esMajorVersion: &esMajorVersion 7
+
+  # configuration for the storage
+  storage:
+    # the storage class name created and used for volume claims
+    className: &storageClassName elastic
+
+  # hosts used by ingress
+  hosts: &ingressHosts
+    - poc.cs.upb.de
+    - poc.cs.uni-paderborn.de
+    - test-master-1.poc.upb.de
+    - test-master-1.poc.uni-paderborn.de
+    - test-master-2.poc.upb.de
+    - test-master-2.poc.uni-paderborn.de
+    - test-master-3.poc.upb.de
+    - test-master-3.poc.uni-paderborn.de
+    - jenkins.poc.cs.upb.de
+    - jenkins.poc.cs.uni-paderborn.de
+    - nexus.poc.cs.upb.de
+    - nexus.poc.cs.uni-paderborn.de
+    - sfb-k8master-1.cs.upb.de
+    - sfb-k8master-1.cs.uni-paderborn.de
+
+  # configuration for kibana
+  kibana:
+    # enable the installation of kibana
+    enabled: &kibanaEnabled true
+    # docker image to pull
+    image: &kibanaImage "docker.elastic.co/kibana/kibana"
+    # number of kibana replicas to spawn
+    replicas: &kibanaReplicas 1
+    # elasticsearch hosts to connect kibana to
+    elasticsearchHosts: &kibanaEsHosts "http://esdb-data:9200"
+
+    ingress:
+      # enable ingress
+      enabled: &kibanaIngressEnabled true
+      # ingress class
+      class: &kibanaIngressClass nginx
+
+  # configuration for elasticsearch
+  elasticsearch:
+    # enable the installation of elasticsearch
+    enabled: &esEnabled true
+    # docker image to pull
+    image: &esImage "docker.elastic.co/elasticsearch/elasticsearch"
+    # elasticsearch cluster name
+    clusterName: &esClusterName "esdb"
+    # kubernetes service name of elasticsearch master nodes
+    masterService: &esMasterServiceName "esdb-master"
+    # minimum amount of reachable master nodes to elect a leader node
+    # has to be set at least to (floor(elasticsearch.master.replicas / 2) + 1)
+    minimumMasterNodes: &minimumMasterNodes 2
+
+    # configuration for different elasticsearch node types
+    nodeGroups:
+      master:
+        # enable the installation of elasticsearch master nodes
+        enabled: &esMasterEnabled true
+        # name for this group of nodes
+        nodeGroup: &esMasterNodeGroup "master"
+        # activated elasticsearch roles
+        roles: &esMasterRoles
+          master: "true"
+          data  : "false"
+          ingest: "false"
+          remote_cluster_client: "false"
+          ml: "false"
+        # number of elasticsearch master replicas to spawn
+        # change minimumMasterNodes according to this value
+        replicas: &esMasterReplicas 2
+        # start parameters for the JVM, -Xmx and -Xms are recommended to be equal
+        esJavaOpts: &esMasterJavaOpts "-Xmx1g -Xms1g"
+        # request this amoumt of memory for the container
+        memory: &esMasterMemoryRequest "2Gi"
+
+        persistence:
+          # en-/disable persisting data
+          enabled: &esMasterPersistenceEnabled false
+          # request this amoumt of disk space
+          storage: &esMasterStorage 10Gi
+
+        ingress:
+          # enable ingress
+          enabled: &esMasterIngressEnabled false
+          # ingress class
+          class: &esMasterIngressClass nginx
+
+      data:
+        # enable the installation of elasticsearch data nodes
+        enabled: &esDataEnabled true
+        # name for this group of nodes
+        nodeGroup: &esDataNodeGroup "data"
+        # activated elasticsearch roles
+        roles: &esDataRoles
+          master: "false"
+          data  : "true"
+          ingest: "true"
+          remote_cluster_client: "false"
+          ml: "false"
+        # number of elasticsearch data replicas to spawn
+        replicas: &esDataReplicas 2
+        # start parameters for the JVM, -Xmx and -Xms are recommended to be equal
+        esJavaOpts: &esDataJavaOpts "-Xmx8g -Xms8g"
+        # request this amoumt of memory for the container
+        memory: &esDataMemoryRequest "10Gi"
+
+        persistence:
+          # en-/disable persisting data
+          enabled: &esDataPersistenceEnabled true
+          # request this amoumt of disk space
+          storage: &esDataStorage 100Gi
+
+        ingress:
+          # enable ingress
+          enabled: &esDataIngressEnabled true
+          # ingress class
+          class: &esDataIngressClass nginx
+
+
+
+#############################################
+### setup subcharts according to settings ###
+#############################################
+
+
+kibana:
+  enabled: *kibanaEnabled
+  elasticsearchHosts: *kibanaEsHosts
+
+  image: *kibanaImage
+  imageTag: *imageVersion
+
+  replicas: *kibanaReplicas
+
+  kibanaConfig:
+    kibana.yml: |
+      server:
+        basePath: /elastic/kibana
+        rewriteBasePath: false
+
+  ingress:
+    enabled: *kibanaIngressEnabled
+    annotations:
+      #kubernetes.io/ingress.class: *kibanaIngressClass
+      nginx.ingress.kubernetes.io/rewrite-target: /$2
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    path: /elastic/kibana(/|$)(.*)
+    hosts: *ingressHosts
+
+
+
+elasticsearch: &elasticsearchValues
+  enabled: *esEnabled
+
+  image: *esImage
+  imageTag: *imageVersion
+  esMajorVersion: *esMajorVersion
+
+  clusterName: *esClusterName
+
+  masterService: *esMasterServiceName
+  minimumMasterNodes: *minimumMasterNodes
+
+  esConfig:
+    elasticsearch.yml: |
+      http:
+        cors:
+          enabled: true
+          allow-origin: '*'
+
+  # init container with root privileges to change owner and group of data volume.
+  # otherwise would elasticsearch fail to start due to missing write access.
+  extraInitContainers: |
+    {{- if .Values.persistence.enabled }}
+    - name: chmod-storage
+      securityContext:
+        runAsUser: 0
+        privileged: true
+      image: "{{ .Values.image }}:{{ .Values.imageTag }}"
+      command: ["chown", "-R", "{{ .Values.fsGroup }}:{{ .Values.fsGroup }}", "/mnt/chown_elastic"]
+      volumeMounts:
+        - name: {{ .Values.clusterName }}-{{ .Values.nodeGroup }}
+          mountPath: /mnt/chown_elastic
+    {{- end -}}
+
+
+elasticsearch-master:
+  <<: *elasticsearchValues
+  enabled: *esMasterEnabled
+
+  nodeGroup: *esMasterNodeGroup
+
+  roles:
+    <<: *esMasterRoles
+
+  replicas: *esMasterReplicas
+
+  esJavaOpts: *esMasterJavaOpts
+
+  resources:
+    requests:
+      memory: *esMasterMemoryRequest
+    limits:
+      memory: *esMasterMemoryRequest
+
+  persistence:
+    enabled: *esMasterPersistenceEnabled
+
+  volumeClaimTemplate:
+    storageClassName: *storageClassName
+    accessModes: [ "ReadWriteOnce" ]
+    resources:
+      requests:
+        storage: *esMasterStorage
+
+
+elasticsearch-data:
+  <<: *elasticsearchValues
+  enabled: *esDataEnabled
+
+  nodeGroup: *esDataNodeGroup
+
+  roles:
+    <<: *esDataRoles
+
+  replicas: *esDataReplicas
+
+  esJavaOpts: *esDataJavaOpts
+
+  resources:
+    requests:
+      memory: *esDataMemoryRequest
+    limits:
+      memory: *esDataMemoryRequest
+
+  persistence:
+    enabled: *esDataPersistenceEnabled
+
+  volumeClaimTemplate:
+    storageClassName: *storageClassName
+    accessModes: [ "ReadWriteOnce" ]
+    resources:
+      requests:
+        storage: *esDataStorage
+
+  ingress:
+    enabled: *esDataIngressEnabled
+    annotations:
+      #kubernetes.io/ingress.class: *esDataIngressClass
+      nginx.ingress.kubernetes.io/rewrite-target: /$2
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    path: /elastic/search(/|$)(.*)
+    hosts: *ingressHosts
+

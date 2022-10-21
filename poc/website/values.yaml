@@ -1,0 +1,17 @@
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+credentials:
+  name: user-nexus
+
+website:
+  name: website
+  service:
+    type: NodePort
+    nodePort: 30568
+  deployment:
+    replicaCount: 1
+    revisionHistoryLimit: 0
+    container:
+      image: website
+      port: 80
+      tag: latest

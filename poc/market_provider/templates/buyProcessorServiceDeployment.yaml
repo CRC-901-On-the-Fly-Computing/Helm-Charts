@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.buyProcessor.name }}
+  labels:
+    helm.sh/chart: {{ include "market-provider-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      run: {{ .Values.buyProcessor.name }}
+  replicas: {{ .Values.buyProcessor.deployment.replicaCount }}
+  revisionHistoryLimit: {{ .Values.buyProcessor.deployment.revisionHistoryLimit }}
+  template:
+    metadata:
+      labels:
+        run: {{ .Values.buyProcessor.name }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.credentials.name }}
+      serviceAccountName: {{ .Values.buyProcessor.name }}-service-account
+      containers:
+      - name: {{ .Values.buyProcessor.name }}
+        image: "{{ .Values.credentials.userNexusUrl }}/{{ .Values.credentials.dockerRepositoryName}}/{{ .Values.buyProcessor.deployment.container.image }}:{{ .Values.buyProcessor.deployment.container.tag }}"
+        imagePullPolicy: {{ .Values.buyProcessor.deployment.container.imagePullPolicy }}
+        env:
+        - name: MARKET_PROVIDER_NAMESPACE
+          value: {{ .Release.Namespace }}
+        - name: RABBIT_SECRET_NAME
+          value: {{ .Values.compositionqueue.secretName }}
+        - name: SERVICE_COMPOSITION_NAMESPACE
+          value: {{ .Values.buyProcessor.serviceCompositionNamespace }}
+        {{ if not .Values.masterNode.autoConfig }}
+        - name: MASTER_NODE_HOSTNAME
+          value: {{ .Values.masterNode.hostName }}
+        {{ end }}
+        - name: PRIVATE_DOCKER_SECRET_KEY
+          value: {{ .Values.credentials.name }}
+        - name: {{ .Values.buyProcessor.deployment.container.env.mongoHostEnvName }}
+          value: {{printf "%s_%s_%s" .Release.Namespace .Values.offerDatabase.nameOverride "SERVICE_HOST" | upper | replace "-" "_" | trunc 63 | trimSuffix "-"}}
+        - name: {{ .Values.buyProcessor.deployment.container.env.mongoPortEnvName }}
+          value: "27017"
+        - name: {{ .Values.buyProcessor.deployment.container.env.mongoUserEnvName }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.offerDatabaseSecret.name }}
+              key: {{ .Values.offerDatabaseSecret.secretUserKey }}
+        - name: {{ .Values.buyProcessor.deployment.container.env.mongoPasswordEnvName }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.offerDatabaseSecret.name }}
+              key: {{ .Values.offerDatabaseSecret.secretPasswordKey }}        
+        ports:
+        - containerPort: {{ .Values.buyProcessor.deployment.port }}

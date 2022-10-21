@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.otfCompositionAnalysis.name }}
+  labels:
+    helm.sh/chart: {{ include "otf-provider-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      run: {{ .Values.otfCompositionAnalysis.name }}
+  replicas: {{ .Values.otfCompositionAnalysis.deployment.replicaCount }}
+  revisionHistoryLimit: {{ .Values.otfCompositionAnalysis.deployment.revisionHistoryLimit }}
+  template:
+    metadata:
+      labels:
+        run: {{ .Values.otfCompositionAnalysis.name }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.credentials.name }}
+      containers:
+      - name: {{ .Values.otfCompositionAnalysis.name }}
+        image: "{{ .Values.credentials.userNexusUrl }}/{{ .Values.credentials.dockerRepositoryName}}/{{ .Values.otfCompositionAnalysis.deployment.container.image }}:{{ .Values.otfCompositionAnalysis.deployment.container.tag }}"
+        imagePullPolicy: {{ .Values.otfCompositionAnalysis.deployment.container.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.otfCompositionAnalysis.deployment.port }}
+          protocol: TCP
+        resources:
+          limits:
+            memory: {{ .Values.otfCompositionAnalysis.deployment.resources.limit.memory }}

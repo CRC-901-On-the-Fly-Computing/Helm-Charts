@@ -1,0 +1,13 @@
+dependencies:
+  - name: mongodb
+    version: 7.0.1
+    repository: "@stable"
+    alias: reputationDatabase 
+  - name: mongodb
+    version: 7.0.1
+    repository: "@stable"
+    alias: offerDatabase
+  - name: rabbitmq
+    version: 6.3.0
+    repository: "@stable"
+    alias: compositionqueue

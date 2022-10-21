@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.serviceRequester.name }}
+  labels:
+    helm.sh/chart: {{ include "service-requester-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      run: {{ .Values.serviceRequester.name }}
+  replicas: {{ .Values.serviceRequester.deployment.replicaCount }}
+  revisionHistoryLimit: {{ .Values.serviceRequester.deployment.revisionHistoryLimit }}
+  template:
+    metadata:
+      labels:
+        run: {{ .Values.serviceRequester.name }}
+    spec:
+      imagePullSecrets:
+      - name: {{ .Values.credentials.name }}
+      containers:
+      - name: {{ .Values.serviceRequester.name }}
+        image: "{{ .Values.credentials.userNexusUrl }}/{{ .Values.credentials.dockerRepositoryName }}/{{ .Values.serviceRequester.deployment.container.image }}:{{ .Values.serviceRequester.deployment.container.tag }}"
+        imagePullPolicy: {{ .Values.serviceRequester.deployment.container.imagePullPolicy }}        
+        ports:
+        - containerPort: {{ .Values.serviceRequester.deployment.port }}
+        env:
+        - name: RABBIT_MQ_HOST
+          value: "{{printf "%s-%s" .Values.config.marketProviderNamespace "composition-queue" | lower | replace "_" "-"}}.{{.Values.config.marketProviderNamespace}}"
+        - name: RABBIT_MQ_PORT
+          value: "5672"
+        - name: RABBIT_MQ_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.compositionqueue.secretName }}
+              key: username
+        - name: RABBIT_MQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.compositionqueue.secretName }}
+              key: password
+

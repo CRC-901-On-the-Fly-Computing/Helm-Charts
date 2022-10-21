@@ -1,0 +1,17 @@
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: postgres-0
+  labels:
+    type: local
+spec:
+  storageClassName: postgres
+  capacity:
+    storage: 5Gi
+  accessModes:
+  - ReadWriteMany
+  hostPath:
+    path: "/mnt/postgres/0"
+    type: DirectoryOrCreate
+

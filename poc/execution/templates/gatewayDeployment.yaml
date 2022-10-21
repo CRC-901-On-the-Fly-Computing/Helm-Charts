@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.gateway.name }}
+  labels:
+    helm.sh/chart: {{ include "execution-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      run: {{ .Values.gateway.name }}
+  replicas: {{ .Values.gateway.deployment.replicaCount }}
+  revisionHistoryLimit: {{ .Values.gateway.deployment.revisionHistoryLimit }}
+  template:
+    metadata:
+      labels:
+        run: {{ .Values.gateway.name }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.credentials.name }}
+      containers:
+      - name: {{ .Values.gateway.name }}
+        image: "{{ .Values.gateway.deployment.container.image }}:{{ .Values.gateway.deployment.container.tag }}"
+        imagePullPolicy: {{ .Values.gateway.deployment.container.imagePullPolicy }}
+        ports:
+        {{- range .Values.gateway.deployment.ports }}
+        - containerPort: {{ .port }}
+          protocol: TCP
+        {{- end }}

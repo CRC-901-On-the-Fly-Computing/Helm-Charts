@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.proxy.name }}
+  labels:
+    helm.sh/chart: {{ include "execution-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      run: {{ .Values.proxy.name }}
+  replicas: {{ .Values.proxy.deployment.replicaCount }}
+  revisionHistoryLimit: {{ .Values.proxy.deployment.revisionHistoryLimit }}
+  template:
+    metadata:
+      labels:
+        run: {{ .Values.proxy.name }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.credentials.sfbNexus.name }}
+      containers:
+      - name: {{ .Values.proxy.name }}
+        image: "{{ .Values.proxy.deployment.container.image }}:{{ .Values.proxy.deployment.container.tag }}"
+        imagePullPolicy: {{ .Values.proxy.deployment.container.imagePullPolicy }}
+        ports:
+        {{- range .Values.proxy.deployment.ports }}
+        - containerPort: {{ .port }}
+          protocol: TCP
+        {{- end }}

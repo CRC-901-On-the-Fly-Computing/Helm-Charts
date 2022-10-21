@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.serviceRequester.name }}
+  labels:
+    helm.sh/chart: {{ include "service-requester-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    run: {{ .Values.serviceRequester.name }}
+spec:
+  type: {{ .Values.serviceRequester.service.type }}
+  ports:
+    - port: {{ .Values.serviceRequester.deployment.port }}
+  {{- if .Values.serviceRequester.service.nodePort }}
+      nodePort: {{ .Values.serviceRequester.service.nodePort }}
+  {{- end }}
+  selector:
+    run: {{ .Values.serviceRequester.name }}

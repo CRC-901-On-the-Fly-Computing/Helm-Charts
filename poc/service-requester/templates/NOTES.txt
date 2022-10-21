@@ -1,0 +1,3 @@
+RBAC sanity checks:
+kubectl auth can-i create deployments --namespace=service-compositions --as=system:serviceaccount:market-provider:buy-processor-service-account
+kubectl auth can-i get nodes --as=system:serviceaccount:market-provider:buy-processor-service-account --namespace=market-provider

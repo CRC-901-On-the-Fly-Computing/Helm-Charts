@@ -1,0 +1,12 @@
+RBAC sanity checks:
+
+kubectl auth can-i create deployments --namespace=execution-executors --as=system:serviceaccount:execution:kubernetes-executor-spawner-service-account
+kubectl auth can-i delete deployments --namespace=execution-executors --as=system:serviceaccount:execution:kubernetes-executor-spawner-service-account
+
+kubectl auth can-i create services --namespace=execution-executors --as=system:serviceaccount:execution:kubernetes-executor-spawner-service-account
+kubectl auth can-i delete services --namespace=execution-executors --as=system:serviceaccount:execution:kubernetes-executor-spawner-service-account
+
+kubectl auth can-i create persistentVolumeClaims --namespace=execution-executors --as=system:serviceaccount:execution:kubernetes-executor-spawner-service-account
+kubectl auth can-i delete persistentVolumeClaims --namespace=execution-executors --as=system:serviceaccount:execution:kubernetes-executor-spawner-service-account
+
+kubectl auth can-i get nodes --as=system:serviceaccount:execution:kubernetes-executor-spawner-service-account --namespace=execution

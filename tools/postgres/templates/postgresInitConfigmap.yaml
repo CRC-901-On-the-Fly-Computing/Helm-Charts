@@ -1,0 +1,20 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Values.postgres.name }}-init
+  labels:
+    app: {{ .Values.postgres.name }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  initialization.sql: |
+    CREATE ROLE "{{ .Values.postgres.database.anonRole }}" LOGIN
+      SUPERUSER INHERIT CREATEDB CREATEROLE REPLICATION;
+
+    CREATE TABLE code_provider_registry (code_provider_id character varying(20) NOT NULL PRIMARY KEY, 
+      repository_url character varying(2083) , subfolder character varying(2020), tag character varying(20));
+
+    CREATE TABLE service_registry (service_id character varying(200) NOT NULL PRIMARY KEY, 
+      code_provider_id character varying(20), service_specification text, service_policy text, 
+      hardware character varying(20), price numeric, service_specification_proseco text, service_description text);

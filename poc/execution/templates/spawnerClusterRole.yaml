@@ -1,0 +1,33 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  # "namespace" omitted since ClusterRoles are not namespaced
+  name: executor-service-creator
+rules:
+- apiGroups:
+  - ""
+  - "apps"
+  - "extensions"
+  # Create deployments and expose them via services
+  resources:
+  - "deployments"
+  - "persistentvolumeclaims"
+  - "replicasets"
+  - "services"
+  # Listing s.t. the NodePort-field can be read after creating the service
+  verbs:
+  - "create"
+  - "delete"
+  - "get"
+  - "list"
+  - "patch"
+  - "watch"
+- apiGroups:
+  - "autoscaling"
+  resources:
+  - "horizontalpodautoscalers"
+  verbs:
+  - "create"
+  - "delete"
+  - "list"
+

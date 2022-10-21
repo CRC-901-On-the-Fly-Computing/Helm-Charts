@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.otfpRegistry.name }}
+  labels:
+    helm.sh/chart: {{ include "market-provider-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      run: {{ .Values.otfpRegistry.name }}
+  replicas: {{ .Values.otfpRegistry.deployment.replicaCount }}
+  revisionHistoryLimit: {{ .Values.otfpRegistry.deployment.revisionHistoryLimit }}
+  template:
+    metadata:
+      labels:
+        run: {{ .Values.otfpRegistry.name }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.credentials.name }}
+      containers:
+      - name: {{ .Values.otfpRegistry.name }}
+        image: "{{ .Values.credentials.userNexusUrl }}/{{ .Values.credentials.dockerRepositoryName}}/{{ .Values.otfpRegistry.deployment.container.image }}:{{ .Values.otfpRegistry.deployment.container.tag }}"
+        imagePullPolicy: {{ .Values.otfpRegistry.deployment.container.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.otfpRegistry.deployment.port }}

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.buyProcessor.name }}
+  labels:
+    helm.sh/chart: {{ include "market-provider-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    run: {{ .Values.buyProcessor.name }}
+spec:
+  type: {{ .Values.buyProcessor.service.type }}
+  ports:
+    - port: {{ .Values.buyProcessor.deployment.port }}
+  {{- if .Values.buyProcessor.service.nodePort }}
+      nodePort: {{ .Values.buyProcessor.service.nodePort }}
+  {{- end }}
+  selector:
+    run: {{ .Values.buyProcessor.name }}

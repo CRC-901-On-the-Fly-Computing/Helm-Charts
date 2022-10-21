@@ -1,0 +1,55 @@
+
+host: test-master-3.poc.uni-paderborn.de
+
+
+postgres:
+  name: postgres
+
+  image: postgres
+  imageTag: "12.1"
+  imagePullPolicy: IfNotPresent
+
+  replicaCount: 1
+  revisionHistoryLimit: 0
+
+  containerPort: 5432
+  nodePort: 30300
+
+  storage: 5Gi
+
+  database:
+    name: postgresdb
+    adminName: postgresadmin
+    adminPassword: admin123
+    schemaName: public
+    anonRole: postgres
+
+
+postgrest:
+  name: postgrest
+
+  image: postgrest/postgrest
+  imageTag: "v6.0.2"
+  imagePullPolicy: IfNotPresent
+
+  replicaCount: 1
+  revisionHistoryLimit: 0
+
+  containerPort: 3000
+  nodePort: 30301
+
+
+swaggerui:
+  name: swagger-ui
+
+  image: swaggerapi/swagger-ui
+  imageTag: "v3.24.3"
+  imagePullPolicy: IfNotPresent
+
+  replicaCount: 1
+  revisionHistoryLimit: 0
+
+  containerPort: 8080
+  nodePort: 30302
+
+

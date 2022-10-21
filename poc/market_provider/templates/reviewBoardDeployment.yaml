@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.reviewBoard.name }}
+  labels:
+    helm.sh/chart: {{ include "market-provider-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      run: {{ .Values.reviewBoard.name }}
+  replicas: {{ .Values.reviewBoard.deployment.replicaCount }}
+  revisionHistoryLimit: {{ .Values.reviewBoard.deployment.revisionHistoryLimit }}
+  template:
+    metadata:
+      labels:
+        run: {{ .Values.reviewBoard.name }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.credentials.name }}
+      serviceAccountName: {{ .Values.buyProcessor.name }}-service-account
+      containers:
+      - name: {{ .Values.reviewBoard.name }}
+        image: "{{ .Values.credentials.userNexusUrl }}/{{ .Values.credentials.dockerRepositoryName}}/{{ .Values.reviewBoard.deployment.container.image }}:{{ .Values.reviewBoard.deployment.container.tag }}"
+        imagePullPolicy: {{ .Values.reviewBoard.deployment.container.imagePullPolicy }}
+        env:
+        - name: {{ .Values.reviewBoard.deployment.container.env.mongoHostEnvName }}
+          value: {{printf "%s_%s_%s" .Release.Namespace .Values.reputationDatabase.nameOverride "SERVICE_HOST" | upper | replace "-" "_" | trunc 63 | trimSuffix "-"}}
+        - name: {{ .Values.reviewBoard.deployment.container.env.mongoPortEnvName }}
+          value: "27017"
+        - name: {{ .Values.reviewBoard.deployment.container.env.mongoUserEnvName }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.reputationDatabaseSecret.name }}
+              key: {{ .Values.reputationDatabaseSecret.secretUserKey }}
+        - name: {{ .Values.reviewBoard.deployment.container.env.mongoPasswordEnvName }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.reputationDatabaseSecret.name }}
+              key: {{ .Values.reputationDatabaseSecret.secretPasswordKey }}
+        ports:
+        - containerPort: {{ .Values.reviewBoard.deployment.port }}

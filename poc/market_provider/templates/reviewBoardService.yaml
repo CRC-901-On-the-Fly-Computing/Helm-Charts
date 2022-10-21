@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.reviewBoard.name }}
+  labels:
+    helm.sh/chart: {{ include "market-provider-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    run: {{ .Values.reviewBoard.name }}
+spec:
+  type: {{ .Values.reviewBoard.service.type }}
+  ports:
+    - port: {{ .Values.reviewBoard.deployment.port }}
+  {{- if .Values.reviewBoard.service.nodePort }}
+      nodePort: {{ .Values.reviewBoard.service.nodePort }}
+  {{- end }}
+  selector:
+    run: {{ .Values.reviewBoard.name }}

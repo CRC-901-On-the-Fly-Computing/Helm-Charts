@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.website.name }}
+  labels:
+    helm.sh/chart: {{ include "website-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      run: {{ .Values.website.name }}
+  replicas: {{ .Values.website.deployment.replicaCount }}
+  revisionHistoryLimit: {{ .Values.website.deployment.revisionHistoryLimit }}
+  template:
+    metadata:
+      labels:
+        run: {{ .Values.website.name }}
+    spec:
+      imagePullSecrets:
+      - name: {{ .Values.credentials.name }}
+      containers:
+      - name: {{ .Values.website.name }}
+        image: "{{ .Values.credentials.userNexusUrl }}/{{ .Values.credentials.dockerRepositoryName }}/{{ .Values.website.deployment.container.image }}:{{ .Values.website.deployment.container.tag }}"
+        imagePullPolicy: {{ .Values.website.deployment.container.imagePullPolicy }}        
+        ports:
+        - containerPort: {{ .Values.website.deployment.container.port }}

@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+# Binds the view node role to the buy processor service account such that the buy processor pod can view the master nodes IP
+# Needs to be a ClusterRoleBinding since nodes are cluster scoped
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Values.buyProcessor.name }}-node-role-binding
+subjects:
+- kind: ServiceAccount
+  name: {{ .Values.buyProcessor.name }}-service-account
+  apiGroup: ""
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole #this must be Role or ClusterRole
+  name: view-nodes
+  apiGroup: rbac.authorization.k8s.io

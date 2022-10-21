@@ -1,0 +1,30 @@
+## May need to run sudo chown -R 1001:1001 /bitnami on the host afterwards
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: market-provider-1
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/market-provider/mongodb/1"
+    type: DirectoryOrCreate
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: market-provider-2
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/market-provider/mongodb/2"
+    type: DirectoryOrCreate

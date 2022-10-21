@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+# This allows the buy-processor pod to create deployments & services in the service-composition namespace
+kind: RoleBinding
+metadata:
+  name: {{ .Values.otfConfigurator.name }}-depl-role-binding
+  namespace: {{ printf "%s%s" .Release.Namespace .Values.otfConfigurator.podNamespaceSuffix }}
+subjects:
+- kind: ServiceAccount
+  name: {{ .Values.otfConfigurator.name }}-service-account
+  apiGroup: ""
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole #this must be Role or ClusterRole
+  name: {{ .Release.Namespace }}-pod-creator
+  apiGroup: rbac.authorization.k8s.io

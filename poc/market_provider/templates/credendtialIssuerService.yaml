@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.credentialIssuer.name }}
+  labels:
+    helm.sh/chart: {{ include "market-provider-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    run: {{ .Values.credentialIssuer.name }}
+spec:
+  type: {{ .Values.credentialIssuer.service.type }}
+  ports:
+    - port: {{ .Values.credentialIssuer.deployment.port }}
+  {{- if .Values.credentialIssuer.service.nodePort }}
+      nodePort: {{ .Values.credentialIssuer.service.nodePort }}
+  {{- end }}
+  selector:
+    run: {{ .Values.credentialIssuer.name }}

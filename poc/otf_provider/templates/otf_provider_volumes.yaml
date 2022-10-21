@@ -1,0 +1,15 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: otf-provider-mongo-volume
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: {{ printf "%s%s" "/mnt/otf-providers/" .Release.Namespace }}
+    type: DirectoryOrCreate
+

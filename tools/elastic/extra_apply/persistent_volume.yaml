@@ -1,0 +1,97 @@
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: elastic-0
+  labels:
+    type: local
+spec:
+  storageClassName: elastic
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/elastic/0"
+    type: DirectoryOrCreate
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: elastic-1
+  labels:
+    type: local
+spec:
+  storageClassName: elastic
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/elastic/1"
+    type: DirectoryOrCreate
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: elastic-2
+  labels:
+    type: local
+spec:
+  storageClassName: elastic
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/elastic/2"
+    type: DirectoryOrCreate
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: elastic-3
+  labels:
+    type: local
+spec:
+  storageClassName: elastic
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/elastic/3"
+    type: DirectoryOrCreate
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: elastic-4
+  labels:
+    type: local
+spec:
+  storageClassName: elastic
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/elastic/4"
+    type: DirectoryOrCreate
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: elastic-5
+  labels:
+    type: local
+spec:
+  storageClassName: elastic
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/elastic/5"
+    type: DirectoryOrCreate
+

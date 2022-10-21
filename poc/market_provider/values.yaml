@@ -1,0 +1,174 @@
+# Default values for market-provider-helm.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+credentials:
+  name: user-nexus
+
+masterNode:
+  # If set to true the buy processor will read the nodes api and look for the hostname of the (tainted) master node
+  autoConfig: true
+  # if set to false, this value will be mounted into the buy-processor and used as the master nodes hostname (use this is cases where the master node is not tainted or the hostname not set)
+  hostName: localhost
+
+# Reputation-System database, these values are the values for the "stable/mongodb" helm chart
+reputationDatabase:
+  nameOverride: "reputationdb"
+  auth:
+    usernames: ["reputation-system"]
+    databases: ["reputation-data"]
+  # Change in production use
+  mongodbUsername: reputation-system
+  mongodbDatabase: reputation-data
+  # Exposed as a NodePort for external debugging
+  service:
+    type: NodePort
+    nodePort: 30500
+  persistence:
+    enabled: true
+    size: 2Gi
+  volumePermissions:
+    enabled: true
+
+# Offer-System database, these values are the values for the "stable/mongodb" helm chart
+offerDatabase:
+  nameOverride: "offerdb"
+  auth:
+    usernames: ["market-provider"]
+    databases: ["offer-data"]
+  # Change in production use
+  mongodbUsername: market-provider
+  mongodbDatabase: offer-data
+  # Exposed as a NodePort for external debugging
+  service:
+    type: NodePort
+    nodePort: 30600
+  persistence:
+    enabled: true
+    size: 2Gi
+  volumePermissions:
+    enabled: true
+
+# Specifies the kube-secret for the reputation database
+reputationDatabaseSecret:
+  name: "reputationsecret"
+  secretUserKey: username
+  secretPasswordKey: password
+  
+# Specifies the kube-secret for the reputation database
+offerDatabaseSecret:
+  name: "offersecret"
+  secretUserKey: username
+  secretPasswordKey: password
+  
+#Message queue for the final composition
+compositionqueue:
+  secretName: "rabbit-mq-secret"
+  nameOverride: "composition-queue"
+  rabbitmq:
+    username: rabbituser
+  persistence:
+    size: 2Gi
+  volumePermissions:
+    enabled: true
+
+# Reputation System Microservice
+reviewBoard:
+  name: "review-board"
+  deployment:
+    container:
+        imagePullPolicy: Always
+        # Docker values
+        image: "review_board"
+        tag: latest
+        # Specifies the environment variables used for the mongo credentials 
+        env:
+          mongoHostEnvName: "REPUTATION_MONGO_DB_HOST"
+          mongoPortEnvName: "REPUTATION_MONGO_DB_PORT"
+          mongoUserEnvName: "REPUTATION_MONGO_DB_USER"
+          mongoPasswordEnvName: "REPUTATION_MONGO_DB_PASSWORD"
+    # Can be increased to balance load, as the review board is stateless
+    replicaCount: 1
+    # CI requirement in order to have only the latest version running
+    revisionHistoryLimit: 0
+    port: 8080
+  service:
+    type: NodePort
+    nodePort: 32413
+    
+#Discribes System Manager Service
+systemManager:
+  name: "system-manager"
+  deployment:
+    container:
+        imagePullPolicy: Always
+        # Docker values
+        image: "system_manager"
+        tag: latest  
+    # Can be increased to balance load, as the review board is stateless
+    replicaCount: 1
+    # CI requirement in order to have only the latest version running
+    revisionHistoryLimit: 0
+    port: 8080
+  service:
+    type: NodePort
+    nodePort: 32271
+
+otfpRegistry:
+  name: "otfp-registry-new"
+  deployment:
+    container:
+        imagePullPolicy: Always
+        # Docker values
+        image: "otfp_registry_new"
+        tag: latest
+    # Can be increased to balance load, as the review board is stateless
+    replicaCount: 1
+    # CI requirement in order to have only the latest version running
+    revisionHistoryLimit: 0
+    port: 8080
+  service:
+    type: NodePort
+    nodePort: 31670
+    
+credentialIssuer:
+  name: "credential-issuer"
+  deployment:
+    container:
+        imagePullPolicy: Always        
+        # Docker values
+        image: "credential_issuer"
+        tag: latest
+    # Can be increased to balance load, as the review board is stateless
+    replicaCount: 1
+    # CI requirement in order to have only the latest version running
+    revisionHistoryLimit: 0
+    port: 8080
+  service:
+    type: NodePort
+    nodePort: 31671
+    
+buyProcessor:
+  name: "buy-processor"
+  deployment:
+    container:
+        imagePullPolicy: Always
+        # Docker values
+        image: "buy_processor"
+        tag: latest
+        # Specifies the environment variables used for the mongo credentials 
+        env:
+          mongoHostEnvName: "OFFER_MONGO_DB_HOST"
+          mongoPortEnvName: "OFFER_MONGO_DB_PORT"
+          mongoUserEnvName: "OFFER_MONGO_DB_USER"
+          mongoPasswordEnvName: "OFFER_MONGO_DB_PASSWORD"
+    # Can be increased to balance load, as the review board is stateless
+    replicaCount: 1
+    # CI requirement in order to have only the latest version running
+    revisionHistoryLimit: 0
+    port: 8080
+  service:
+    type: NodePort
+    nodePort: 31755
+  # Specifies the namespace where the bought images are deployed to. The buy processor will get the privileges to spawn pods there
+  serviceCompositionNamespace: "service-compositions"
