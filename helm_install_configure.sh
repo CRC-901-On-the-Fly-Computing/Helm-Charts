@@ -10,12 +10,9 @@ bash get_helm.sh
 rm get_helm.sh
 
 # Clone Helm Chart Repository
-git clone https://git.cs.upb.de/SFB901-Testbed/helm-charts.git
+git clone https://github.com/CRC-901-On-the-Fly-Computing/Helm-Charts.git
 cd helm-charts/
 
-
-# Create a tiller user 
-git checkout feature/publish_poc
 
 # Switch to the tiller files directory
 cd tiller-files/
@@ -25,6 +22,7 @@ echo " Apply the tiller files"
 kubectl apply -f tiller-user.yaml
 kubectl apply -f tiller-cluster-role-binding.yaml
 
+# Create a tiller user 
 echo " Create tiller service account"
 helm init --service-account tiller-user
 
