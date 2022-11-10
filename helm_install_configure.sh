@@ -11,7 +11,7 @@ rm get_helm.sh
 
 # Clone Helm Chart Repository
 git clone https://github.com/CRC-901-On-the-Fly-Computing/Helm-Charts.git
-cd helm-charts/
+cd Helm-Charts/
 
 
 # Switch to the tiller files directory
