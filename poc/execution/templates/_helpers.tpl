@@ -28,10 +28,6 @@ If release name contains chart name it will be used as a full name.
 {{- printf "{\"auths\": {\"%s\": {\"auth\": \"%s\"}}}" .Values.credentials.userNexusUrl (printf "%s:%s" .Values.credentials.userNexusUsername .Values.credentials.userNexusPassword | b64enc) | b64enc }}
 {{- end }} *}
 
-{* {{- define "sfb-imagePullSecret" }}
-{{- printf "{\"auths\": {\"%s\": {\"auth\": \"%s\"}}}" .Values.credentials.sfbNexus.registry (printf "%s:%s" .Values.credentials.sfbNexus.username .Values.credentials.sfbNexusPassword | b64enc) | b64enc }}
-{{- end }} *}
-
 {* {{- define "docker-registry" }}
 {{- printf "%s/%s/" .Values.credentials.userNexusUrl .Values.credentials.dockerRepositoryName | b64enc }}
 {{- end }} *}

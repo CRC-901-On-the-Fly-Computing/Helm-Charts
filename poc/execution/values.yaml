@@ -4,10 +4,6 @@
 
 credentials:
   name: user-nexus
-  sfbNexus:
-     name: sfb-nexus
-     registry: "nexus.cs.upb.de:/sfb901-testbed/"
-     username: "gradleuser"
 
 masterNode:
   # If set to true the buy processor will read the nodes api and look for the hostname of the (tainted) master node
@@ -47,9 +43,9 @@ proxy:
     replicaCount: 1
     revisionHistoryLimit: 0
     container:
-      image: nexus.cs.upb.de/sfb901-testbed/sede.proxy
+      image: sede.proxy
       imagePullPolicy: Always
-      tag: v5
+      tag: latest
     ports:
     - name: http
       port: 8080

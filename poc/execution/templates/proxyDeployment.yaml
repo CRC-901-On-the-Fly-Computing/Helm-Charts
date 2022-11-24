@@ -18,10 +18,10 @@ spec:
         run: {{ .Values.proxy.name }}
     spec:
       imagePullSecrets:
-        - name: {{ .Values.credentials.sfbNexus.name }}
+      - name: {{ .Values.credentials.name }}
       containers:
       - name: {{ .Values.proxy.name }}
-        image: "{{ .Values.proxy.deployment.container.image }}:{{ .Values.proxy.deployment.container.tag }}"
+        image: "{{ .Values.credentials.userNexusUrl }}/{{ .Values.credentials.dockerRepositoryName }}/{{ .Values.proxy.deployment.container.image }}:{{ .Values.proxy.deployment.container.tag }}"
         imagePullPolicy: {{ .Values.proxy.deployment.container.imagePullPolicy }}
         ports:
         {{- range .Values.proxy.deployment.ports }}
