@@ -8,7 +8,7 @@ credentials:
      name: sfb-nexus
      credentialSecretName: sfb-nexus-credentials
      registry: "nexus.cs.upb.de/sfb901-testbed/"
-     username: "gradleuser"
+     username: "public_user"
 
 config:
   marketProviderNamespace: market-provider
